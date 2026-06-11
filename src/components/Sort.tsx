@@ -1,6 +1,6 @@
 // Modules
 import { useState } from "react";
-import {usePathname, useRouter, useSearchParams} from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 // Components
 import { Select, MenuItem } from "@mui/material";

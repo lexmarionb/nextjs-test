@@ -1,6 +1,3 @@
-// Modules
-import { useState, useEffect } from "react";
-
 // Components
 import { Box } from "@mui/material";
 import ProductItem from "@/components/product/Item";
@@ -8,15 +5,9 @@ import ProductItem from "@/components/product/Item";
 // Types
 import type { Product } from "@/types";
 
-export default function ProductLatest() {
-    const [products, setProducts] = useState<Product[]>([]);
-
-    useEffect(() => {
-        fetch("https://dummyjson.com/products?sortBy=id&order=desc&limit=4")
-            .then((res) => res.json())
-            .then(data => setProducts(data.products))
-            .catch((err) => console.error("Failed to fetch latest products:", err));
-    }, [])
+export default async function ProductLatest() {
+    const response = await fetch("https://dummyjson.com/products?sortBy=id&order=desc&limit=4")
+    const products = (await response.json()).products as Product[];
 
     return (
         <Box>

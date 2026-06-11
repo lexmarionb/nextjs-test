@@ -1,62 +1,35 @@
-// Modules
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-
 // Components
 import { Box } from "@mui/material";
 import Link from "@/components/Link";
-
+import {Suspense} from "react";
+import ProductGrid from "@/components/product/Grid";
+import ProductLoading from "@/components/product/Loading";
 
 // Types
-import type { Product } from "@/types";
-import ProductGrid from "@/components/product/Grid";
-type Props = {
-    search: string | null
-}
+import type { Product, PropsWSearchParams } from "@/types";
 
-export default function ProductDisplay({ search }: Props) {
-    const searchParams = useSearchParams();
+export default async function ProductDisplay({ searchParams }: PropsWSearchParams) {
     const limit = 8;
-    const [loading, setLoading] = useState(true);
-    const [products, setProducts] = useState<Product[]>([]);
-    const page = searchParams.get("page") || 1;
-    const skip = (Number(page) - 1) * limit;
-    const [total, setTotal] = useState(0);
+    const params = await searchParams;
+    const page = Number(params.page ?? 1);
+    const skip = (page - 1) * limit;
+    const sortBy = (params.sortBy ?? "title") as string;
+    const order = (params.order ?? "asc") as string;
+    const search = (params.q ?? null) as string | null;
+    let products: Product[];
+    let total: number;
 
-    useEffect(() => {
-        const sortBy = searchParams.get("sortBy") || "title";
-        const order = searchParams.get("order") || "asc";
-
-        setLoading(true);
-
-        if (search) {
-            fetch(`https://dummyjson.com/products/search?q=${search}&limit=${limit}&skip=${skip}&sortBy=${sortBy}&order=${order}`)
-                .then(res => res.json())
-                .then(data => {
-                    setProducts(data.products);
-                    setTotal(data.total);
-                    setLoading(false);
-                })
-                .catch(err => {
-                    console.error("Error searching products:", err);
-                    setProducts([]);
-                    setLoading(false);
-                });
-        } else {
-            fetch(`https://dummyjson.com/products?limit=${limit}&skip=${skip}&sortBy=${sortBy}&order=${order}`)
-                .then(res => res.json())
-                .then(data => {
-                    setProducts(data.products);
-                    setTotal(data.total);
-                    setLoading(false);
-                })
-                .catch(err => {
-                    console.error("Error fetching products:", err);
-                    setProducts([]);
-                    setLoading(false);
-                });
-        }
-    }, [search, searchParams, skip]);
+    if (search) {
+        const response = await fetch(`https://dummyjson.com/products/search?q=${search}&limit=${limit}&skip=${skip}&sortBy=${sortBy}&order=${order}`)
+        const json: Record<string, number | Product[]> = await response.json();
+        products = json.products as Product[];
+        total = json.total as number;
+    } else {
+        const response = await fetch(`https://dummyjson.com/products?limit=${limit}&skip=${skip}&sortBy=${sortBy}&order=${order}`)
+        const json: Record<string, number | Product[]> = await response.json();
+        products = json.products as Product[];
+        total = json.total as number;
+    }
 
     return (
         <Box>
@@ -70,7 +43,9 @@ export default function ProductDisplay({ search }: Props) {
                 <h2 className="mt-2 font-bold text-2xl">Found {total} products with <em>&quot;{search}&quot;</em></h2>
             </Box>
             <hr className="mb-5" />
-            <ProductGrid loading={loading} products={products} limit={limit} skip={skip} total={total} />
+            <Suspense fallback={<ProductLoading limit={limit} />}>
+                <ProductGrid products={products} limit={limit} skip={skip} total={total} />
+            </Suspense>
         </Box>
     )
 }

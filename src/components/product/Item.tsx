@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Box } from "@mui/material";
 
 // Utilities
-import {slugify} from "@/utils/string";
+import { slugify } from "@/utils/string";
 
 // Types
 import type { Product } from "@/types";

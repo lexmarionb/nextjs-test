@@ -1,54 +1,31 @@
-"use client";
-
-// Modules
-import { useEffect, useState, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
-
 // Components
 import { Box } from "@mui/material";
 import Link from "@/components/Link";
+import ProductGrid from "@/components/product/Grid";
+import { Suspense } from "react";
+import ProductLoading from "@/components/product/Loading";
 
 // Utilities
 import { capitalize } from "@/utils/string";
 
 // Types
-import type {Product} from "@/types";
-import ProductGrid from "@/components/product/Grid";
-type Props = {
+import type { Product, PropsWSearchParams } from "@/types";
+type Props = PropsWSearchParams & {
     category: string
 }
 
-export function ProductCategory({ category }: Props) {
-    const searchParams = useSearchParams();
+export async function ProductCategory({ category, searchParams }: Props) {
     const limit = 8;
-    const [loading, setLoading] = useState(true);
-    const [products, setProducts] = useState<Product[]>([]);
-    const page = searchParams.get("page") || 1;
-    const skip = (Number(page) - 1) * limit;
-    const [total, setTotal] = useState(0);
-
-    const title = useMemo(() => {
-        return capitalize(category.replaceAll(/\-/g, ' '));
-    }, [category]);
-
-    useEffect(() => {
-        const sortBy = searchParams.get("sortBy") || "title";
-        const order = searchParams.get("order") || "asc";
-
-        setLoading(true);
-        fetch(`https://dummyjson.com/products/category/${category}?limit=${limit}&skip=${skip}&sortBy=${sortBy}&order=${order}`)
-            .then(res => res.json())
-            .then(data => {
-                setProducts(data.products);
-                setTotal(data.total);
-                setLoading(false);
-            })
-            .catch(err => {
-                console.error("Error fetching products:", err);
-                setProducts([]);
-                setLoading(false);
-            });
-    }, [category, searchParams, skip]);
+    const params = await searchParams;
+    const page = Number(params.page ?? 1);
+    const skip = (page - 1) * limit;
+    const sortBy = (params.sortBy ?? "title") as string;
+    const order = (params.order ?? "asc") as string;
+    const response = await fetch(`https://dummyjson.com/products/category/${category}?limit=${limit}&skip=${skip}&sortBy=${sortBy}&order=${order}`)
+    const json: Record<string, number | Product[]> = await response.json();
+    const products = json.products as Product[];
+    const total = json.total as number;
+    const title = capitalize(category.replaceAll(/\-/g, ' '));
 
     return (
         <Box>
@@ -62,7 +39,9 @@ export function ProductCategory({ category }: Props) {
                 <h1 className="font-bold text-2xl mt-2">{title}</h1>
             </Box>
             <hr className="mb-5" />
-            <ProductGrid loading={loading} products={products} limit={limit} skip={skip} total={total} />
+            <Suspense fallback={<ProductLoading limit={limit} />}>
+                <ProductGrid products={products} limit={limit} skip={skip} total={total} />
+            </Suspense>
         </Box>
     )
 }

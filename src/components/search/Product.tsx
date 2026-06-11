@@ -1,34 +1,25 @@
-"use client";
-
-// Modules
-import { useSearchParams } from "next/navigation";
-import React, { useMemo } from "react";
-
 // Components
 import { Box } from "@mui/material";
 import SearchDisplay from "@/components/search/Display";
 import ProductLatest from "@/components/product/Latest";
+import CategoriesBoxes from "@/components/categories/Boxes";
+import CategoriesList from "@/components/categories/List";
 
 // Types
-type Props = {
-    list: React.ReactNode
-    boxes: React.ReactNode
-}
+import { PropsWSearchParams } from "@/types";
 
-export default function SearchProduct({ list, boxes }: Props) {
-    const searchParams = useSearchParams();
-    const search = useMemo<string | null>(() => {
-        return searchParams.get("q") ?? null;
-    }, [searchParams]);
+export default async function SearchProduct({ searchParams }: PropsWSearchParams) {
+    const params = await searchParams;
+    const search = (params.q ?? null) as string | null;
 
     return (
         <Box>
-            {search && <SearchDisplay search={search} />}
+            {search && <SearchDisplay searchParams={searchParams} />}
             <Box className="mt-5">
-                {search && search?.length ? list : (
+                {search && search?.length ? <CategoriesList /> : (
                     <Box>
                         <ProductLatest />
-                        {boxes}
+                        <CategoriesBoxes />
                     </Box>
                 )}
             </Box>

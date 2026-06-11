@@ -27,7 +27,7 @@ export default function SearchInput() {
 
         if (params.has('page')) params.delete('page');
         if (params.has('sortBy')) params.delete('sortBy');
-        if (params.has('orderBy')) params.delete('orderBy');
+        if (params.has('order')) params.delete('order');
 
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
     }
