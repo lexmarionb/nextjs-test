@@ -19,16 +19,16 @@ export default function ProductItem({ product }: Props) {
             className="border p-4 rounded"
             href={`${product.category}/${slugify(product.title)}`}
         >
-            <Box
-                className="w-full h-48 object-cover mb-2 relative"
-            >
-                <Image
-                    src={product.thumbnail}
-                    alt={product.title}
-                    fill
-                    sizes="cover"
-                    loading="eager"
-                />
+            <Box>
+                <Box className="h-48 w-full max-w-48 mb-2 relative mx-auto">
+                    <Image
+                        src={product.thumbnail}
+                        alt={product.title}
+                        fill
+                        sizes="contain"
+                        loading="eager"
+                    />
+                </Box>
             </Box>
             <h3 className="text-lg font-semibold">{product.title}</h3>
             <p className="text-gray-600">${product.price}</p>
